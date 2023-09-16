@@ -78,13 +78,14 @@ def csv_operation(input1: Path, input2: Path, output: Path, idx1: int = 0):
     input2_header: list[str]
     input2_data: list[str]
     input1_header, input1_data = get_csv_data(input1, key_index=idx1)
+    input1_data_keys = list(input1_data.keys())
     input2_data = get_folder_data(input2)
 
     if not input1_data or not input2_data:
         logger.error("Initial data are missing. Exit.")
         return
     else:
-        input_1_k = [k for i, k in enumerate(input1_data.keys()) if i < 5]
+        input_1_k = input1_data_keys[:5]
         logger.info(f"input1 first 5 keys in list: {input_1_k}")
         input_2_k = input2_data[:5]
         logger.info(f"input2 first 5 keys in list: {input_2_k}")
@@ -95,7 +96,7 @@ def csv_operation(input1: Path, input2: Path, output: Path, idx1: int = 0):
     intersection_21 = csv_compare(input1_data, input2_data)
     # print(intersection_21)
 
-    input1_records = len(input1_data.keys())
+    input1_records = len(input1_data_keys)
     input2_records = len(input2_data)
     output_records = len(intersection_21)
     report_txt = f"{input1_records=}, {input2_records=}, {output_records=}"
