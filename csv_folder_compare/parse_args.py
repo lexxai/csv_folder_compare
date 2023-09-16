@@ -76,8 +76,8 @@ def app_arg():
     )
     ap.add_argument(
         "--input1_key_idx",
-        help="Key index for input1, default 0",
-        default=0,
+        help="Key index for input1, default 2",
+        default=2,
         type=int,
     )
     ap.add_argument(

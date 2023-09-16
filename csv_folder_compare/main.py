@@ -27,21 +27,26 @@ def get_folder_data(input_folder: Path) -> list[str]:
 
 
 def get_csv_data(
-    input_file: Path, key_index: int = 0, delimiter=",", encoding="UTF-8"
+    input_file: Path, key_index: int = 0, delimiter=",", encoding="utf-8-sig"
 ) -> tuple[list[str], dict[str, list[str]]]:
     input_data: dict[str, list[str]] = {}
     input_header: list[str] = []
     if input_file.is_file():
-        with open(input_file, newline="", encoding=encoding) as csvfile:
+        with input_file.open(newline="", encoding=encoding) as csvfile:
             reader = csv.reader(csvfile, delimiter=delimiter)
-            input_header = next(reader)
-            key: str = ""
             try:
-                for row in reader:
-                    key = Path(row[key_index]).stem
-                    input_data[key] = row
-            except IndexError:
-                logger.error(f"{input_file} key index error: {key_index}")
+                while not (input_header := next(reader)):
+                    logger.info(f"reread csv header: {input_header}")
+                key: str = ""
+                try:
+                    for row in reader:
+                        if row:
+                            key = Path(row[key_index]).stem
+                            input_data[key] = row
+                except IndexError:
+                    logger.error(f"{input_file} key index error: {key_index}")
+            except StopIteration:
+                logger.error(f"Is empty '{input_file}' ?")
     else:
         logger.error(f"File {input_file} is not found")
     return input_header, input_data
@@ -53,10 +58,10 @@ def save_result_csv(
     keys: list[str],
     output: Path,
     delimiter=",",
-    encoding="UTF-8",
+    encoding="utf-8-sig",
 ):
     try:
-        with open(output, "w", newline="", encoding=encoding) as csvfile:
+        with output.open("w", newline="", encoding=encoding) as csvfile:
             writer = csv.writer(csvfile, delimiter=delimiter)
             writer.writerow(input_header)
             for key in keys:
@@ -78,6 +83,11 @@ def csv_operation(input1: Path, input2: Path, output: Path, idx1: int = 0):
     if not input1_data or not input2_data:
         logger.error("Initial data are missing. Exit.")
         return
+    else:
+        input_1_k = [k for i, k in enumerate(input1_data.keys()) if i < 5]
+        logger.info(f"input1 first 5 keys in list: {input_1_k}")
+        input_2_k = input2_data[:5]
+        logger.info(f"input2 first 5 keys in list: {input_2_k}")
 
     # print(input1_header, input1_data)
     # print(input2_header, input2_data)
@@ -115,7 +125,6 @@ def main():
     if not output_path.is_absolute():
         output_path = work_path.joinpath(output_path)
     input1_key_idx = args.get("input1_key_idx")
-    input2_key_idx = args.get("input2_key_idx")
 
     csv_operation(input1_path, input2_path, output_path, input1_key_idx)
 
