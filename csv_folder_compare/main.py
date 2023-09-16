@@ -10,9 +10,9 @@ except ImportError:
 logger: logging
 
 
-def csv_compare(input1_data: dict, input2_data: list[str]) -> list[str]:
+def csv_compare(input1_data: list[str], input2_data: list[str]) -> list[str]:
     # calculate common keys of data
-    input1_data_keys = set(input1_data.keys())
+    input1_data_keys = set(input1_data)
     input2_data_keys = set(input2_data)
     intersection_21 = input2_data_keys.intersection(input1_data_keys)
     # print(intersection_21)
@@ -76,35 +76,36 @@ def csv_operation(input1: Path, input2: Path, output: Path, idx1: int = 0):
     input1_header: list[str]
     input1_data: dict[str, list[str]]
     input2_header: list[str]
-    input2_data: list[str]
+    input2_data_keys: list[str]
+    # read input1 data to dict with keys of filename form column by idx
     input1_header, input1_data = get_csv_data(input1, key_index=idx1)
     input1_data_keys = list(input1_data.keys())
-    input2_data = get_folder_data(input2)
-
-    if not input1_data or not input2_data:
+    # read input2 data to list of filenames form folder
+    input2_data_keys = get_folder_data(input2)
+    # check is resent data
+    if not input1_data_keys or not input2_data_keys:
         logger.error("Initial data are missing. Exit.")
         return
     else:
-        input_1_k = input1_data_keys[:5]
-        logger.info(f"input1 first 5 keys in list: {input_1_k}")
-        input_2_k = input2_data[:5]
-        logger.info(f"input2 first 5 keys in list: {input_2_k}")
-
-    # print(input1_header, input1_data)
-    # print(input2_header, input2_data)
-
-    intersection_21 = csv_compare(input1_data, input2_data)
-    # print(intersection_21)
-
+        logger.info(f"input1 first 5 keys in list: {input1_data_keys[:5]}")
+        logger.info(f"input2 first 5 keys in list: {input2_data_keys[:5]}")
+    # intersection of data sets
+    intersection_21 = csv_compare(input1_data_keys, input2_data_keys)
+    # prepare report statistic data
     input1_records = len(input1_data_keys)
-    input2_records = len(input2_data)
+    input2_records = len(input2_data_keys)
     output_records = len(intersection_21)
     report_txt = f"{input1_records=}, {input2_records=}, {output_records=}"
     logger.info(report_txt)
+    # save result to csv file
     if intersection_21:
         save_result_csv(input1_header, input1_data, intersection_21, output)
     else:
         logger.error("No output data. Nothing to save.")
+
+
+def check_absolute_path(p: Path, work: Path) -> Path:
+    return p if p.is_absolute() else work.joinpath(p)
 
 
 def main():
@@ -116,15 +117,9 @@ def main():
     )
     logger = logging.getLogger(__name__)
     work_path = args.get("work")
-    input1_path = args.get("input1")
-    input2_path = args.get("input2")
-    output_path = args.get("output")
-    if not input1_path.is_absolute():
-        input1_path = work_path.joinpath(input1_path)
-    if not input2_path.is_absolute():
-        input2_path = work_path.joinpath(input2_path)
-    if not output_path.is_absolute():
-        output_path = work_path.joinpath(output_path)
+    input1_path = check_absolute_path(args.get("input1"), work_path)
+    input2_path = check_absolute_path(args.get("input2"), work_path)
+    output_path = check_absolute_path(args.get("output"), work_path)
     input1_key_idx = args.get("input1_key_idx")
 
     csv_operation(input1_path, input2_path, output_path, input1_key_idx)
