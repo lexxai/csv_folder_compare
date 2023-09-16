@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "csv_folder_compare"
+version = "0.1.0"
+description = "Compare folder file list and csv files by a key column."
+authors = ["lexxai <lexxai@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+csv_intersection = "csv_folder_compare.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+importlib-metadata = { version = "^1.0.0", python = "<3.8" }
+pefile = "^2023.2.7"
+
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller-versionfile = "^2.1.1"
+pyinstaller = {version = "^5.13.2", python = ">=3.11,<3.13"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
